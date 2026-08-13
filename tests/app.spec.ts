@@ -13,3 +13,70 @@ test("ページがロードできページエラーが出ない", async ({ page 
 });
 
 // このスモークは削除しないこと。機能テストは PLAN.md の受け入れ条件ごとに追記する
+
+test("パターン一致箇所が本文中でハイライト表示される", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "foo");
+  await page.fill("#test-input", "foo bar foo");
+  await expect(page.locator("#result mark")).toHaveCount(2);
+  await expect(page.locator("#result mark").first()).toHaveText("foo");
+});
+
+test("gフラグの有無でハイライト件数と件数表示が変わる", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "a");
+  await page.fill("#test-input", "banana");
+  await page.fill("#flags", "g");
+  await expect(page.locator("#result mark")).toHaveCount(3);
+  await expect(page.locator("#match-count")).toContainText("3件一致");
+
+  await page.fill("#flags", "");
+  await expect(page.locator("#result mark")).toHaveCount(1);
+  await expect(page.locator("#match-count")).toContainText("1件一致");
+});
+
+test("無効な正規表現でエラー表示されハイライトされない", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "[a-");
+  await page.fill("#test-input", "abc");
+  await expect(page.locator("#error")).not.toBeEmpty();
+  await expect(page.locator("#result mark")).toHaveCount(0);
+});
+
+test("入力変更でボタンなしに結果が即時更新される", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "cat");
+  await page.fill("#test-input", "a cat");
+  await expect(page.locator("#result mark")).toHaveCount(1);
+
+  await page.fill("#test-input", "a cat and a cat");
+  await expect(page.locator("#result mark")).toHaveCount(2);
+});
+
+test("HTML特殊文字はタグとして解釈されず文字として表示される", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "alert");
+  await page.fill("#test-input", '<script>alert(1)</script>');
+  await expect(page.locator("#result script")).toHaveCount(0);
+  await expect(page.locator("#result")).toContainText("<script>alert(1)</script>");
+  await expect(page.locator("#result mark")).toHaveCount(1);
+  await expect(page.locator("#result mark")).toHaveText("alert");
+});
+test("マッチ0件のときマッチなしであることが分かる表示になる", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "zzz");
+  await page.fill("#test-input", "hello");
+  await expect(page.locator("#match-count")).toContainText("0件一致");
+  await expect(page.locator("#result mark")).toHaveCount(0);
+});
+
+test("再読み込み後に入力値は復元されない", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "persist");
+  await page.fill("#flags", "gi");
+  await page.fill("#test-input", "should not remain");
+  await page.reload();
+  await expect(page.locator("#pattern")).toHaveValue("");
+  await expect(page.locator("#flags")).toHaveValue("g");
+  await expect(page.locator("#test-input")).toHaveValue("");
+});

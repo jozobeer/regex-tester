@@ -1,5 +1,255 @@
 <!doctype html>
 <html lang="ja">
-<head><meta charset="utf-8"><title>正規表現テスター</title></head>
-<body><h1>正規表現テスター</h1><p>builder がこのファイルを実装で置き換えます。</p></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>正規表現テスター</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a2332'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='ui-monospace,monospace' font-size='14' font-weight='700' fill='%233dba9c'%3E.*%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #eef2f5;
+      --surface: #ffffff;
+      --ink: #1a2332;
+      --muted: #5a6a7a;
+      --line: #c5d0da;
+      --accent: #0d7a66;
+      --accent-soft: #d4f0e8;
+      --mark: #ffe08a;
+      --error: #b42318;
+      --error-bg: #fef3f2;
+      --mono: "IBM Plex Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
+      --sans: "IBM Plex Sans", "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, #d5e8e2 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 0%, #dbe4f0 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 1rem;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      margin: 0 0 1.75rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .field {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    .pattern-row {
+      display: grid;
+      grid-template-columns: 1fr 5.5rem;
+      gap: 0.75rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    textarea {
+      min-height: 8rem;
+      resize: vertical;
+    }
+
+    #error {
+      min-height: 1.4em;
+      margin: 0.5rem 0 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      color: var(--error);
+      background: var(--error-bg);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+    }
+
+    #error:empty {
+      display: none;
+    }
+
+    #match-count {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    #result {
+      margin: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      min-height: 4rem;
+    }
+
+    #result mark {
+      background: var(--mark);
+      color: var(--ink);
+      padding: 0.05em 0;
+      border-radius: 2px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正規表現テスター</h1>
+    <p class="lead">パターンと文字列を入力すると、マッチ箇所をその場でハイライトします。値は保存されません。</p>
+
+    <div class="pattern-row">
+      <div class="field">
+        <label for="pattern">パターン</label>
+        <input type="text" id="pattern" autocomplete="off" spellcheck="false" placeholder="例: \\d+">
+      </div>
+      <div class="field">
+        <label for="flags">フラグ</label>
+        <input type="text" id="flags" value="g" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="test-input">テスト文字列</label>
+      <textarea id="test-input" autocomplete="off" spellcheck="false" placeholder="マッチさせたいテキスト"></textarea>
+    </div>
+
+    <div id="error" role="alert"></div>
+    <p id="match-count"></p>
+    <div id="result" aria-live="polite"></div>
+  </div>
+
+  <footer style="margin-top:3rem;text-align:center;font-size:.8rem;opacity:.6">
+    <a href="https://apps.jozo.beer" style="color:inherit">apps.jozo.beer</a>
+  </footer>
+
+  <script>
+    function escapeHtml(s) {
+      return s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function collectMatches(regex, text) {
+      const matches = [];
+      if (!regex.global) {
+        const m = regex.exec(text);
+        if (m) matches.push({ start: m.index, end: m.index + m[0].length });
+        return matches;
+      }
+
+      let m;
+      while ((m = regex.exec(text)) !== null) {
+        matches.push({ start: m.index, end: m.index + m[0].length });
+        if (m[0].length === 0) {
+          regex.lastIndex += 1;
+          if (regex.lastIndex > text.length) break;
+        }
+      }
+      return matches;
+    }
+
+    function highlight(text, matches) {
+      if (matches.length === 0) return escapeHtml(text);
+
+      let html = "";
+      let cursor = 0;
+      for (const { start, end } of matches) {
+        html += escapeHtml(text.slice(cursor, start));
+        html += "<mark>" + escapeHtml(text.slice(start, end)) + "</mark>";
+        cursor = end;
+      }
+      html += escapeHtml(text.slice(cursor));
+      return html;
+    }
+
+    function render() {
+      const pattern = document.getElementById("pattern").value;
+      const flags = document.getElementById("flags").value;
+      const text = document.getElementById("test-input").value;
+      const errorEl = document.getElementById("error");
+      const countEl = document.getElementById("match-count");
+      const resultEl = document.getElementById("result");
+
+      errorEl.textContent = "";
+      countEl.textContent = "";
+      resultEl.innerHTML = "";
+
+      if (pattern === "") {
+        resultEl.textContent = text;
+        return;
+      }
+
+      let regex;
+      try {
+        regex = new RegExp(pattern, flags);
+      } catch (err) {
+        errorEl.textContent = err.message;
+        return;
+      }
+
+      const matches = collectMatches(regex, text);
+      countEl.textContent = matches.length + "件一致";
+      resultEl.innerHTML = highlight(text, matches);
+    }
+
+    for (const id of ["pattern", "flags", "test-input"]) {
+      document.getElementById(id).addEventListener("input", render);
+    }
+
+    render();
+  </script>
+</body>
 </html>
