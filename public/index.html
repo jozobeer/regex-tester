@@ -190,11 +190,14 @@
         return matches;
       }
 
+      const unicode = regex.unicode || regex.unicodeSets;
       let m;
       while ((m = regex.exec(text)) !== null) {
         matches.push({ start: m.index, end: m.index + m[0].length });
         if (m[0].length === 0) {
-          regex.lastIndex += 1;
+          const from = m.index + m[0].length;
+          const cp = unicode ? text.codePointAt(from) : undefined;
+          regex.lastIndex = from + (cp !== undefined && cp > 0xffff ? 2 : 1);
           if (regex.lastIndex > text.length) break;
         }
       }

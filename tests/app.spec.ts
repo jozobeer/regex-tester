@@ -80,3 +80,14 @@ test("再読み込み後に入力値は復元されない", async ({ page }) => 
   await expect(page.locator("#flags")).toHaveValue("g");
   await expect(page.locator("#test-input")).toHaveValue("");
 });
+
+test("Unicode空マッチでも無限ループせず件数表示される", async ({ page }) => {
+  await page.goto(APP_URL);
+  await page.fill("#pattern", "(?:)");
+  await page.fill("#flags", "gu");
+  await page.fill("#test-input", "😀");
+  await expect(page.locator("#match-count")).toContainText("2件一致", {
+    timeout: 2000,
+  });
+  await expect(page.locator("#error")).toBeEmpty();
+});
