@@ -4,6 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>正規表現テスター</title>
+  <meta name="description" content="正規表現のパターン・フラグ・テスト文字列を入力すると、マッチ箇所をその場でハイライトし件数を表示します。値は保存せず、入力のたびに即時再評価します。">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "正規表現テスター",
+    "description": "正規表現のパターン・フラグ・テスト文字列を入力すると、マッチ箇所をその場でハイライトし件数を表示します。値は保存せず、入力のたびに即時再評価します。",
+    "url": "https://regex-tester.jozo.beer/",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+  }
+  </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a2332'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='ui-monospace,monospace' font-size='14' font-weight='700' fill='%233dba9c'%3E.*%3C/text%3E%3C/svg%3E">
   <style>
     :root {
@@ -140,6 +152,41 @@
       border-radius: 2px;
     }
 
+    .docs {
+      margin-top: 2.5rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .docs h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .docs ol {
+      margin: 0 0 1.75rem;
+      padding-left: 1.25rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .docs li { margin-bottom: 0.35rem; }
+
+    .docs dt {
+      margin: 0.85rem 0 0.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .docs dt:first-of-type { margin-top: 0; }
+
+    .docs dd {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
   </style>
 </head>
 <body>
@@ -166,6 +213,29 @@
     <div id="error" role="alert"></div>
     <p id="match-count"></p>
     <div id="result" aria-live="polite"></div>
+
+    <div class="docs">
+      <section id="how-to" aria-labelledby="how-to-heading">
+        <h2 id="how-to-heading">使い方</h2>
+        <ol>
+          <li>パターン欄に正規表現を入力します。</li>
+          <li>必要ならフラグを変えます。初期値は g（すべての一致）です。</li>
+          <li>テスト文字列を入力すると、マッチ箇所がハイライトされ件数が表示されます。</li>
+        </ol>
+      </section>
+
+      <section id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">FAQ</h2>
+        <dl>
+          <dt>入力した値は保存されますか？</dt>
+          <dd>保存されません。ページを再読み込みすると入力は消えます。</dd>
+          <dt>無効な正規表現を入れるとどうなりますか？</dt>
+          <dd>エラーメッセージだけが表示され、ハイライトは行われません。</dd>
+          <dt>g フラグを外すと何が変わりますか？</dt>
+          <dd>最初の1件だけが対象になります。g を付けるとすべての一致を数えます。</dd>
+        </dl>
+      </section>
+    </div>
   </div>
 
   <footer style="margin-top:3rem;text-align:center;font-size:.8rem;opacity:.6">
